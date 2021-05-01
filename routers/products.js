@@ -91,7 +91,7 @@ router.put('/:id', async (req, res) => {
     },
     { new: true }
   );
-  if (!product) return res.status(500).send('The category cannot be Updated!');
+  if (!product) return res.status(500).send('The product cannot be Updated!');
   res.send(product);
 });
 
@@ -112,4 +112,15 @@ router.delete('/:id', async (req, res) => {
       return res.status(500).json({ success: false, error: err });
     });
 });
+
+router.get('/get/count', async (req, res) => {
+  const productCount = await Product.countDocuments((count) => count);
+  if (!productCount) {
+    res.status(500).json({ success: false });
+  }
+  res.send({
+    productCount: productCount,
+  });
+});
+
 module.exports = router;
