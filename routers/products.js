@@ -5,7 +5,14 @@ const { Product } = require('../models/product');
 const mongoose = require('mongoose');
 
 router.get(`/`, async (req, res) => {
-  const productList = await Product.find().populate('category');
+  // http://localhost:9000/api/v1/products?categories=6085d9dd865165061c6c4349
+  //filtering part
+  let filter = {};
+  if (req.query.categories) {
+    filter = { category: req.query.categories.split(',') };
+  }
+  const productList = await Product.find(filter).populate('category');
+
   if (!productList) {
     res.status(500).json({ success: false });
   }
@@ -91,7 +98,7 @@ router.put('/:id', async (req, res) => {
     },
     { new: true }
   );
-  if (!product) return res.status(500).send('The category cannot be Updated!');
+  if (!product) return res.status(500).send('The product cannot be Updated!');
   res.send(product);
 });
 
@@ -112,4 +119,24 @@ router.delete('/:id', async (req, res) => {
       return res.status(500).json({ success: false, error: err });
     });
 });
+
+router.get('/get/count', async (req, res) => {
+  const productCount = await Product.countDocuments((count) => count);
+  if (!productCount) {
+    res.status(500).json({ success: false });
+  }
+  res.send({
+    productCount: productCount,
+  });
+});
+
+router.get('/get/featured/:count', async (req, res) => {
+  const count = req.params.count ? req.params.count : 0;
+  const product = await Product.find({ isFeatured: true }).limit(+count);
+  if (!product) {
+    res.status(500).json({ success: false });
+  }
+  res.send(product);
+});
+
 module.exports = router;
