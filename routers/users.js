@@ -1,33 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const { User } = require('../models/user');
+const bcrypt = require('bcryptjs');
 
 router.get(`/`, async (req, res) => {
-  const productList = await User.find();
-  if (!productList) {
+  const userList = await User.find();
+  if (!userList) {
     res.status(500).json({ success: false });
   }
-  res.send(productList);
+  res.send(userList);
 });
 
-router.post(`/`, (req, res) => {
-  const product = new User({
+router.post(`/`, async (req, res) => {
+  let user = new User({
     name: req.body.name,
-    image: req.body.image,
-    countInStock: req.body.countInStock,
+    email: req.body.email,
+    passwordHash: bcrypt.hashSync(req.body.password, 10),
+    phone: req.body.phone,
+    isAdmin: req.body.isAdmin,
+    street: req.body.street,
+    apartment: req.body.apartment,
+    zip: req.body.zip,
+    city: req.body.city,
+    country: req.body.country,
   });
 
-  product
-    .save()
-    .then((createProduct) => {
-      res.status(201).json(createProduct);
-    })
-    .catch((err) => {
-      res.status(500).json({
-        error: err,
-        success: false,
-      });
-    });
+  user = await user.save();
+  if (!user) {
+    return res.status(400).send('The user cannot be created!');
+  }
+  res.send(user);
 });
 
 module.exports = router;
